@@ -13,3 +13,6 @@ myenv/
 __pycache__/
 *.py[codz]
 *$py.class
+
+# Others
+instructions.txt
