@@ -1,234 +1,274 @@
-from ProjectParserListener import ProjectParserListener, ProjectParser
+from ProjectParserListener import ProjectParserListener
+from ProjectParser import ProjectParser
 from SymbolTable import SymbolTable
 
 
 class MyListener(ProjectParserListener):
     def __init__(self):
         super().__init__()
-        self.symbol_table = SymbolTable()
+        self.errors = []
+
+        self.symbol_table = SymbolTable(self.errors)
         self.types = {}
 
-    # Enter a parse tree produced by ProjectParser#program.
-    def enterProgram(self, ctx:ProjectParser.ProgramContext):
-        pass
-
     # Exit a parse tree produced by ProjectParser#program.
-    def exitProgram(self, ctx:ProjectParser.ProgramContext):
-        pass
-
-
-    # Enter a parse tree produced by ProjectParser#emptyStmt.
-    def enterEmptyStmt(self, ctx:ProjectParser.EmptyStmtContext):
+    def exitProgram(self, ctx: ProjectParser.ProgramContext):
         pass
 
     # Exit a parse tree produced by ProjectParser#emptyStmt.
-    def exitEmptyStmt(self, ctx:ProjectParser.EmptyStmtContext):
-        pass
-
-
-    # Enter a parse tree produced by ProjectParser#declStmt.
-    def enterDeclStmt(self, ctx:ProjectParser.DeclStmtContext):
+    def exitEmptyStmt(self, ctx: ProjectParser.EmptyStmtContext):
         pass
 
     # Exit a parse tree produced by ProjectParser#declStmt.
-    def exitDeclStmt(self, ctx:ProjectParser.DeclStmtContext):
-        pass
+    def exitDeclStmt(self, ctx: ProjectParser.DeclStmtContext):
+        dtype = self.types.get(ctx.type_(), "error")
+        line = ctx.start.line
 
-
-    # Enter a parse tree produced by ProjectParser#exprStmt.
-    def enterExprStmt(self, ctx:ProjectParser.ExprStmtContext):
-        pass
+        for id_node in ctx.IDENTIFIER():
+            self.symbol_table.declare(id_node.getText(), dtype, line)
 
     # Exit a parse tree produced by ProjectParser#exprStmt.
-    def exitExprStmt(self, ctx:ProjectParser.ExprStmtContext):
-        pass
-
-
-    # Enter a parse tree produced by ProjectParser#readStmt.
-    def enterReadStmt(self, ctx:ProjectParser.ReadStmtContext):
-        pass
+    def exitExprStmt(self, ctx: ProjectParser.ExprStmtContext):
+        self.types[ctx] = self.types.get(ctx.expression(), "error")
 
     # Exit a parse tree produced by ProjectParser#readStmt.
-    def exitReadStmt(self, ctx:ProjectParser.ReadStmtContext):
-        pass
-
-
-    # Enter a parse tree produced by ProjectParser#writeStmt.
-    def enterWriteStmt(self, ctx:ProjectParser.WriteStmtContext):
+    def exitReadStmt(self, ctx: ProjectParser.ReadStmtContext):
         pass
 
     # Exit a parse tree produced by ProjectParser#writeStmt.
-    def exitWriteStmt(self, ctx:ProjectParser.WriteStmtContext):
-        pass
-
-
-    # Enter a parse tree produced by ProjectParser#blockStmt.
-    def enterBlockStmt(self, ctx:ProjectParser.BlockStmtContext):
+    def exitWriteStmt(self, ctx: ProjectParser.WriteStmtContext):
         pass
 
     # Exit a parse tree produced by ProjectParser#blockStmt.
-    def exitBlockStmt(self, ctx:ProjectParser.BlockStmtContext):
-        pass
-
-
-    # Enter a parse tree produced by ProjectParser#ifStmt.
-    def enterIfStmt(self, ctx:ProjectParser.IfStmtContext):
+    def exitBlockStmt(self, ctx: ProjectParser.BlockStmtContext):
         pass
 
     # Exit a parse tree produced by ProjectParser#ifStmt.
-    def exitIfStmt(self, ctx:ProjectParser.IfStmtContext):
-        pass
+    def exitIfStmt(self, ctx: ProjectParser.IfStmtContext):
+        dtype = self.types.get(ctx.expression(), "error")
+        line = ctx.start.line
 
-
-    # Enter a parse tree produced by ProjectParser#whileStmt.
-    def enterWhileStmt(self, ctx:ProjectParser.WhileStmtContext):
-        pass
+        if dtype != "bool":
+            self.errors.append(
+                f"Type Error [Line {line}]: Condition must yield boolean value"
+            )
 
     # Exit a parse tree produced by ProjectParser#whileStmt.
-    def exitWhileStmt(self, ctx:ProjectParser.WhileStmtContext):
-        pass
+    def exitWhileStmt(self, ctx: ProjectParser.WhileStmtContext):
+        dtype = self.types.get(ctx.expression(), "error")
+        line = ctx.start.line
 
-
-    # Enter a parse tree produced by ProjectParser#type.
-    def enterType(self, ctx:ProjectParser.TypeContext):
-        pass
+        if dtype != "bool":
+            self.errors.append(
+                f"Type Error [Line {line}]: Condition must yield boolean value"
+            )
 
     # Exit a parse tree produced by ProjectParser#type.
-    def exitType(self, ctx:ProjectParser.TypeContext):
-        pass
-
-
-    # Enter a parse tree produced by ProjectParser#intExpr.
-    def enterIntExpr(self, ctx:ProjectParser.IntExprContext):
-        pass
+    def exitType(self, ctx: ProjectParser.TypeContext):
+        dtype = ctx.getText()
+        self.types[ctx] = dtype
 
     # Exit a parse tree produced by ProjectParser#intExpr.
-    def exitIntExpr(self, ctx:ProjectParser.IntExprContext):
-        pass
-
-
-    # Enter a parse tree produced by ProjectParser#addSubConcatExpr.
-    def enterAddSubConcatExpr(self, ctx:ProjectParser.AddSubConcatExprContext):
-        pass
+    def exitIntExpr(self, ctx: ProjectParser.IntExprContext):
+        self.types[ctx] = "int"
 
     # Exit a parse tree produced by ProjectParser#addSubConcatExpr.
-    def exitAddSubConcatExpr(self, ctx:ProjectParser.AddSubConcatExprContext):
-        pass
+    def exitAddSubConcatExpr(self, ctx: ProjectParser.AddSubConcatExprContext):
+        left = self.types.get(ctx.expression()[0], "error")
+        right = self.types.get(ctx.expression()[1], "error")
+        operator = ctx.op.text
+        line = ctx.start.line
 
+        if left == "error" or right == "error":
+            self.types[ctx] = "error"
 
-    # Enter a parse tree produced by ProjectParser#orExpr.
-    def enterOrExpr(self, ctx:ProjectParser.OrExprContext):
-        pass
+        if operator == ".":
+            if left == "string" and right == "string":
+                self.types[ctx] = "string"
+            else:
+                self.errors.append(
+                    f"Type Error [Line {line}]: Concat used for other than string."
+                )
+                self.types[ctx] = "error"
+        else:
+            if left in ["bool", "string"] or right in ["bool", "string"]:
+                self.errors.append(
+                    f"Type Error [Line {line}]: Operator {operator} not defined for {left} and {right}"
+                )
+                self.types[ctx] = "error"
+            elif left == "float" or right == "float":
+                self.types[ctx] = "float"
+            else:
+                self.types[ctx] = "int"
 
     # Exit a parse tree produced by ProjectParser#orExpr.
-    def exitOrExpr(self, ctx:ProjectParser.OrExprContext):
-        pass
+    def exitOrExpr(self, ctx: ProjectParser.OrExprContext):
+        left = self.types.get(ctx.expression()[0], "error")
+        right = self.types.get(ctx.expression()[1], "error")
+        line = ctx.start.line
 
+        if left == "error" or right == "error":
+            self.types[ctx] = "error"
+            return
 
-    # Enter a parse tree produced by ProjectParser#mulDivModExpr.
-    def enterMulDivModExpr(self, ctx:ProjectParser.MulDivModExprContext):
-        pass
+        if left == "bool" and right == "bool":
+            self.types[ctx] = "bool"
+        else:
+            self.errors.append(
+                f"Type Error [Line {line}]: Logic OR not defined for {left} and {right}"
+            )
+            self.types[ctx] = "error"
 
     # Exit a parse tree produced by ProjectParser#mulDivModExpr.
-    def exitMulDivModExpr(self, ctx:ProjectParser.MulDivModExprContext):
-        pass
+    def exitMulDivModExpr(self, ctx: ProjectParser.MulDivModExprContext):
+        left = self.types.get(ctx.expression()[0], "error")
+        right = self.types.get(ctx.expression()[1], "error")
+        operator = ctx.op.text
+        line = ctx.start.line
 
+        if left == "error" or right == "error":
+            self.types[ctx] = "error"
 
-    # Enter a parse tree produced by ProjectParser#parensExpr.
-    def enterParensExpr(self, ctx:ProjectParser.ParensExprContext):
-        pass
+        if left in ["string", "bool"] or right in ["string", "bool"]:
+            self.errors.append(
+                f"Type Error [Line {line}]: Operator {operator} not defined for {left} and {right}"
+            )
+            self.types[ctx] = "error"
+            return
+
+        if operator == "%":
+            if left == "int" and right == "int":
+                self.types[ctx] = "int"
+            else:
+                self.errors.append(
+                    f"Type Error [Line {line}]: Module can be used only with integers.."
+                )
+                self.types[ctx] = "error"
+        else:
+            if left == "float" or right == "float":
+                self.types[ctx] = "float"
+            else:
+                self.types[ctx] = "int"
 
     # Exit a parse tree produced by ProjectParser#parensExpr.
-    def exitParensExpr(self, ctx:ProjectParser.ParensExprContext):
-        pass
-
-
-    # Enter a parse tree produced by ProjectParser#stringExpr.
-    def enterStringExpr(self, ctx:ProjectParser.StringExprContext):
-        pass
+    def exitParensExpr(self, ctx: ProjectParser.ParensExprContext):
+        self.types[ctx] = self.types.get(ctx.expression(), "error")
 
     # Exit a parse tree produced by ProjectParser#stringExpr.
-    def exitStringExpr(self, ctx:ProjectParser.StringExprContext):
-        pass
-
-
-    # Enter a parse tree produced by ProjectParser#floatExpr.
-    def enterFloatExpr(self, ctx:ProjectParser.FloatExprContext):
-        pass
+    def exitStringExpr(self, ctx: ProjectParser.StringExprContext):
+        self.types[ctx] = "string"
 
     # Exit a parse tree produced by ProjectParser#floatExpr.
-    def exitFloatExpr(self, ctx:ProjectParser.FloatExprContext):
-        pass
-
-
-    # Enter a parse tree produced by ProjectParser#eqExpr.
-    def enterEqExpr(self, ctx:ProjectParser.EqExprContext):
-        pass
+    def exitFloatExpr(self, ctx: ProjectParser.FloatExprContext):
+        self.types[ctx] = "float"
 
     # Exit a parse tree produced by ProjectParser#eqExpr.
-    def exitEqExpr(self, ctx:ProjectParser.EqExprContext):
-        pass
+    def exitEqExpr(self, ctx: ProjectParser.EqExprContext):
+        left = self.types.get(ctx.expression()[0], "error")
+        right = self.types.get(ctx.expression()[1], "error")
+        operator = ctx.op.text
+        line = ctx.start.line
 
+        if left == "error" or right == "error":
+            self.types[ctx] = "error"
+            return
 
-    # Enter a parse tree produced by ProjectParser#notExpr.
-    def enterNotExpr(self, ctx:ProjectParser.NotExprContext):
-        pass
+        if (
+            (left == "float" and right == "int")
+            or (left == "int" and right == "float")
+            or (left == right and left in ["float", "int", "string"])
+        ):
+            self.types[ctx] = "bool"
+        else:
+            self.errors.append(
+                f"Type Error [Line {line}]: Operator {operator} not defined for {left} and {right}"
+            )
+            self.types[ctx] = "error"
 
     # Exit a parse tree produced by ProjectParser#notExpr.
-    def exitNotExpr(self, ctx:ProjectParser.NotExprContext):
-        pass
+    def exitNotExpr(self, ctx: ProjectParser.NotExprContext):
+        expr = self.types.get(ctx.expression(), "error")
+        line = ctx.start.line
 
-
-    # Enter a parse tree produced by ProjectParser#unaryMinusExpr.
-    def enterUnaryMinusExpr(self, ctx:ProjectParser.UnaryMinusExprContext):
-        pass
+        if expr != "bool":
+            self.errors.append(
+                f"Type Error [Line {line}]: Unary negation not defined for {expr}"
+            )
+            self.types[ctx] = "error"
+        else:
+            self.types[ctx] = "bool"
 
     # Exit a parse tree produced by ProjectParser#unaryMinusExpr.
-    def exitUnaryMinusExpr(self, ctx:ProjectParser.UnaryMinusExprContext):
-        pass
-
-
-    # Enter a parse tree produced by ProjectParser#boolExpr.
-    def enterBoolExpr(self, ctx:ProjectParser.BoolExprContext):
-        pass
+    def exitUnaryMinusExpr(self, ctx: ProjectParser.UnaryMinusExprContext):
+        self.types[ctx] = self.types.get(ctx.expression(), "error")
 
     # Exit a parse tree produced by ProjectParser#boolExpr.
-    def exitBoolExpr(self, ctx:ProjectParser.BoolExprContext):
-        pass
-
-
-    # Enter a parse tree produced by ProjectParser#relExpr.
-    def enterRelExpr(self, ctx:ProjectParser.RelExprContext):
-        pass
+    def exitBoolExpr(self, ctx: ProjectParser.BoolExprContext):
+        self.types[ctx] = "bool"
 
     # Exit a parse tree produced by ProjectParser#relExpr.
-    def exitRelExpr(self, ctx:ProjectParser.RelExprContext):
-        pass
+    def exitRelExpr(self, ctx: ProjectParser.RelExprContext):
+        left = self.types.get(ctx.expression()[0], "error")
+        right = self.types.get(ctx.expression()[1], "error")
+        operator = ctx.op.text
+        line = ctx.start.line
 
+        if left == "error" or right == "error":
+            self.types[ctx] = "error"
+            return
 
-    # Enter a parse tree produced by ProjectParser#assignExpr.
-    def enterAssignExpr(self, ctx:ProjectParser.AssignExprContext):
-        pass
+        if (
+            (left == "float" and right == "int")
+            or (left == "int" and right == "float")
+            or (left == right and left in ["float", "int"])
+        ):
+            self.types[ctx] = "bool"
+        else:
+            self.errors.append(
+                f"Type Error [Line {line}]: Operator {operator} not defined for {left} and {right}"
+            )
+            self.types[ctx] = "error"
 
     # Exit a parse tree produced by ProjectParser#assignExpr.
-    def exitAssignExpr(self, ctx:ProjectParser.AssignExprContext):
-        pass
+    def exitAssignExpr(self, ctx: ProjectParser.AssignExprContext):
+        var_name = ctx.IDENTIFIER().getText().strip()
+        line = ctx.start.line
+        var_dtype = self.symbol_table.resolve(var_name, line)
+        value_dtype = self.types.get(ctx.expression(), "error")
 
+        if var_dtype == "error" or value_dtype == "error":
+            self.types[ctx] = "error"
+            return
 
-    # Enter a parse tree produced by ProjectParser#idExpr.
-    def enterIdExpr(self, ctx:ProjectParser.IdExprContext):
-        pass
+        if var_dtype == value_dtype or var_dtype == "float" and value_dtype == "int":
+            self.types[ctx] = var_dtype
+        else:
+            self.errors.append(
+                f"Type Error [Line {line}]: Var '{var_name}' declared as {var_dtype} but got {value_dtype}."
+            )
+            self.types[ctx] = "error"
 
     # Exit a parse tree produced by ProjectParser#idExpr.
-    def exitIdExpr(self, ctx:ProjectParser.IdExprContext):
-        pass
+    def exitIdExpr(self, ctx: ProjectParser.IdExprContext):
+        var_name = ctx.IDENTIFIER().getText()
+        line = ctx.start.line
 
-
-    # Enter a parse tree produced by ProjectParser#andExpr.
-    def enterAndExpr(self, ctx:ProjectParser.AndExprContext):
-        pass
+        self.types[ctx] = self.symbol_table.resolve(var_name, line)
 
     # Exit a parse tree produced by ProjectParser#andExpr.
-    def exitAndExpr(self, ctx:ProjectParser.AndExprContext):
-        pass
-    
+    def exitAndExpr(self, ctx: ProjectParser.AndExprContext):
+        left = self.types.get(ctx.expression()[0], "error")
+        right = self.types.get(ctx.expression()[1], "error")
+        line = ctx.start.line
+
+        if left == "error" or right == "error":
+            self.types[ctx] = "error"
+            return
+
+        if left == "bool" and right == "bool":
+            self.types[ctx] = "bool"
+        else:
+            self.errors.append(
+                f"Type Error [Line {line}]: Logic AND not defined for {left} and {right}"
+            )
+            self.types[ctx] = "error"
