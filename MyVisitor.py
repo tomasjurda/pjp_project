@@ -96,34 +96,39 @@ class MyVisitor(ProjectParserVisitor):
     # Visit a parse tree produced by ProjectParser#ifStmt.
     def visitIfStmt(self, ctx: ProjectParser.IfStmtContext):
         instructions = ""
+        label_1 = self.label_counter
+        label_2 = label_1 + 1
+        self.label_counter += 2
 
         instructions += self.visit(ctx.expression())
-        instructions += f"fjmp {self.label_counter} \n"
+        instructions += f"fjmp {label_1} \n"
 
         instructions += self.visit(ctx.statement()[0])
-        instructions += f"jmp {self.label_counter + 1} \n"
-        instructions += f"label {self.label_counter} \n"
+        instructions += f"jmp {label_2} \n"
+        instructions += f"label {label_1} \n"
         if len(ctx.statement()) > 1:
             instructions += self.visit(ctx.statement()[1])
-        instructions += f"label {self.label_counter + 1} \n"
+        instructions += f"label {label_2} \n"
 
-        self.label_counter += 2
         return instructions
 
     # Visit a parse tree produced by ProjectParser#whileStmt.
     def visitWhileStmt(self, ctx: ProjectParser.WhileStmtContext):
         instructions = ""
-        instructions += f"label {self.label_counter} \n"
+        label_1 = self.label_counter
+        label_2 = label_1 + 1
+        self.label_counter += 2
+
+        instructions += f"label {label_1} \n"
 
         instructions += self.visit(ctx.expression())
-        instructions += f"fjmp {self.label_counter + 1} \n"
+        instructions += f"fjmp {label_2} \n"
 
         instructions += self.visit(ctx.statement())
 
-        instructions += f"jmp {self.label_counter} \n"
-        instructions += f"label {self.label_counter + 1} \n"
+        instructions += f"jmp {label_1} \n"
+        instructions += f"label {label_2} \n"
 
-        self.label_counter += 2
         return instructions
 
     # Visit a parse tree produced by ProjectParser#type.
