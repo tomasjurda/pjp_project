@@ -62,6 +62,24 @@ class ProjectParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by ProjectParser#fopenStmt.
+    def enterFopenStmt(self, ctx:ProjectParser.FopenStmtContext):
+        pass
+
+    # Exit a parse tree produced by ProjectParser#fopenStmt.
+    def exitFopenStmt(self, ctx:ProjectParser.FopenStmtContext):
+        pass
+
+
+    # Enter a parse tree produced by ProjectParser#fwriteStmt.
+    def enterFwriteStmt(self, ctx:ProjectParser.FwriteStmtContext):
+        pass
+
+    # Exit a parse tree produced by ProjectParser#fwriteStmt.
+    def exitFwriteStmt(self, ctx:ProjectParser.FwriteStmtContext):
+        pass
+
+
     # Enter a parse tree produced by ProjectParser#blockStmt.
     def enterBlockStmt(self, ctx:ProjectParser.BlockStmtContext):
         pass
@@ -86,6 +104,15 @@ class ProjectParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by ProjectParser#whileStmt.
     def exitWhileStmt(self, ctx:ProjectParser.WhileStmtContext):
+        pass
+
+
+    # Enter a parse tree produced by ProjectParser#forStmt.
+    def enterForStmt(self, ctx:ProjectParser.ForStmtContext):
+        pass
+
+    # Exit a parse tree produced by ProjectParser#forStmt.
+    def exitForStmt(self, ctx:ProjectParser.ForStmtContext):
         pass
 
 
@@ -185,6 +212,15 @@ class ProjectParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by ProjectParser#unaryMinusExpr.
     def exitUnaryMinusExpr(self, ctx:ProjectParser.UnaryMinusExprContext):
+        pass
+
+
+    # Enter a parse tree produced by ProjectParser#ternExpr.
+    def enterTernExpr(self, ctx:ProjectParser.TernExprContext):
+        pass
+
+    # Exit a parse tree produced by ProjectParser#ternExpr.
+    def exitTernExpr(self, ctx:ProjectParser.TernExprContext):
         pass
 
 

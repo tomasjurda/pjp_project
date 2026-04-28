@@ -39,6 +39,9 @@ class MyListener(ProjectParserListener):
     def exitWriteStmt(self, ctx: ProjectParser.WriteStmtContext):
         pass
 
+    def exitFopenStmt(self, ctx: ProjectParser.FopenStmtContext):
+        pass
+
     # Exit a parse tree produced by ProjectParser#blockStmt.
     def exitBlockStmt(self, ctx: ProjectParser.BlockStmtContext):
         pass
@@ -201,6 +204,30 @@ class MyListener(ProjectParserListener):
     # Exit a parse tree produced by ProjectParser#unaryMinusExpr.
     def exitUnaryMinusExpr(self, ctx: ProjectParser.UnaryMinusExprContext):
         self.types[ctx] = self.types.get(ctx.expression(), "error")
+
+    # Exit a parse tree produced by ProjectParser#ternExpr.
+    def exitTernExpr(self, ctx: ProjectParser.TernExprContext):
+        condition = self.types[ctx.expression()[0]]
+        true = self.types[ctx.expression()[1]]
+        false = self.types[ctx.expression()[2]]
+
+        line = ctx.start.line
+
+        if condition != "bool":
+            self.errors.append(
+                f"Type Error [Line {line}]: Condition must yield boolean value"
+            )
+            self.types[ctx] = "error"
+            return
+
+        if true != false:
+            self.errors.append(
+                f"Type Error [Line {line}]: Left a right side must be the same type"
+            )
+            self.types[ctx] = "error"
+            return
+
+        self.types[ctx] = true
 
     # Exit a parse tree produced by ProjectParser#boolExpr.
     def exitBoolExpr(self, ctx: ProjectParser.BoolExprContext):

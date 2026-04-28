@@ -17,6 +17,8 @@ class MyVisitor(ProjectParserVisitor):
             dtype_if = "F"
         elif dtype == "string":
             dtype_if = "S"
+        elif dtype == "FILE":
+            dtype_if = "FILE"
         else:
             dtype_if = "B"
 
@@ -44,6 +46,8 @@ class MyVisitor(ProjectParserVisitor):
         elif dtype == "F":
             def_value = "0.0"
         elif dtype == "S":
+            def_value = '""'
+        elif dtype == "FILE":
             def_value = '""'
         else:
             def_value = "false"
@@ -85,6 +89,39 @@ class MyVisitor(ProjectParserVisitor):
 
         return instructions
 
+    # Visit a parse tree produced by ProjectParser#fopenStmt.
+    def visitFopenStmt(self, ctx: ProjectParser.FopenStmtContext):
+        instructions = ""
+
+        # 1. Vyhodnotíme výraz s cestou k souboru (např. STRING_LITERAL) na zásobník
+        instructions += self.visit(ctx.expression())
+
+        # 2. Zavoláme instrukci fopen, která hodnotu zpracuje
+        instructions += "fopen \n"
+
+        # 3. Uložíme vzniklý ukazatel na soubor do proměnné
+        var_name = ctx.IDENTIFIER().getText()
+        instructions += f"save {var_name} \n"
+
+        return instructions
+
+    # Visit a parse tree produced by ProjectParser#fwriteStmt.
+    def visitFwriteStmt(self, ctx: ProjectParser.FwriteStmtContext):
+        instructions = ""
+
+        # 1. Nahrajeme všechny výrazy pro zápis na zásobník zleva doprava
+        for exp in ctx.expression():
+            instructions += self.visit(exp)
+
+        # 2. Na samotný vrchol zásobníku nakonec nahrajeme objekt souboru
+        var_name = ctx.IDENTIFIER().getText()
+        instructions += f"load {var_name} \n"
+
+        # 3. Předáme počet parametrů (výrazů) instrukci fwrite
+        instructions += f"fwrite {len(ctx.expression())} \n"
+
+        return instructions
+
     # Visit a parse tree produced by ProjectParser#blockStmt.
     def visitBlockStmt(self, ctx: ProjectParser.BlockStmtContext):
         instructions = ""
@@ -96,34 +133,60 @@ class MyVisitor(ProjectParserVisitor):
     # Visit a parse tree produced by ProjectParser#ifStmt.
     def visitIfStmt(self, ctx: ProjectParser.IfStmtContext):
         instructions = ""
+        label_1 = self.label_counter
+        label_2 = label_1 + 1
+        self.label_counter += 2
 
         instructions += self.visit(ctx.expression())
-        instructions += f"fjmp {self.label_counter} \n"
+        instructions += f"fjmp {label_1} \n"
 
         instructions += self.visit(ctx.statement()[0])
-        instructions += f"jmp {self.label_counter + 1} \n"
-        instructions += f"label {self.label_counter} \n"
+        instructions += f"jmp {label_2} \n"
+        instructions += f"label {label_1} \n"
         if len(ctx.statement()) > 1:
             instructions += self.visit(ctx.statement()[1])
-        instructions += f"label {self.label_counter + 1} \n"
+        instructions += f"label {label_2} \n"
 
-        self.label_counter += 2
         return instructions
 
     # Visit a parse tree produced by ProjectParser#whileStmt.
     def visitWhileStmt(self, ctx: ProjectParser.WhileStmtContext):
         instructions = ""
-        instructions += f"label {self.label_counter} \n"
+        label_1 = self.label_counter
+        label_2 = label_1 + 1
+        self.label_counter += 2
+
+        instructions += f"label {label_1} \n"
 
         instructions += self.visit(ctx.expression())
-        instructions += f"fjmp {self.label_counter + 1} \n"
+        instructions += f"fjmp {label_2} \n"
 
         instructions += self.visit(ctx.statement())
 
-        instructions += f"jmp {self.label_counter} \n"
-        instructions += f"label {self.label_counter + 1} \n"
+        instructions += f"jmp {label_1} \n"
+        instructions += f"label {label_2} \n"
 
+        return instructions
+
+    # Visit a parse tree produced by ProjectParser#forStmt.
+    def visitForStmt(self, ctx: ProjectParser.ForStmtContext):
+        instructions = ""
+        label_1 = self.label_counter
+        label_2 = label_1 + 1
         self.label_counter += 2
+
+        instructions += self.visit(ctx.expression()[0]) + "pop \n"
+
+        instructions += f"label {label_1} \n"
+        instructions += self.visit(ctx.expression()[1])
+        instructions += f"fjmp {label_2} \n"
+
+        instructions += self.visit(ctx.statement())
+
+        instructions += self.visit(ctx.expression()[2]) + "pop \n"
+        instructions += f"jmp {label_1} \n"
+        instructions += f"label {label_2} \n"
+
         return instructions
 
     # Visit a parse tree produced by ProjectParser#type.
@@ -257,6 +320,25 @@ class MyVisitor(ProjectParserVisitor):
 
         instructions += self.visit(ctx.expression())
         instructions += f"uminus {dtype_if} \n"
+
+        return instructions
+
+    # Visit a parse tree produced by ProjectParser#ternExpr.
+    def visitTernExpr(self, ctx: ProjectParser.TernExprContext):
+        instructions = ""
+        label_1 = self.label_counter
+        label_2 = label_1 + 1
+        self.label_counter += 2
+
+        instructions += self.visit(ctx.expression()[0])
+        instructions += f"fjmp {label_1} \n"
+
+        instructions += self.visit(ctx.expression()[1])
+        instructions += f"jmp {label_2} \n"
+        instructions += f"label {label_1} \n"
+
+        instructions += self.visit(ctx.expression()[2])
+        instructions += f"label {label_2} \n"
 
         return instructions
 

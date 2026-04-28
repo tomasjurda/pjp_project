@@ -11,14 +11,17 @@ statement
     | expression SEMI                                           # exprStmt
     | READ IDENTIFIER (COMMA IDENTIFIER)* SEMI                  # readStmt
     | WRITE expression (COMMA expression)* SEMI                 # writeStmt
+    | FOPEN IDENTIFIER expression SEMI                          # fopenStmt
+    | FWRITE IDENTIFIER expression (COMMA expression)* SEMI     # fwriteStmt
     | LBRACE statement* RBRACE                                  # blockStmt
     | IF LPAREN expression RPAREN statement (ELSE statement)?   # ifStmt
     | WHILE LPAREN expression RPAREN statement                  # whileStmt
+    | FOR LPAREN expression SEMI expression SEMI expression RPAREN statement #forStmt
     ;
 
 // Variable Types
 type
-    : INT | FLOAT | BOOL | STRING
+    : INT | FLOAT | BOOL | STRING | FILE
     ;
 
 // Expressions 
@@ -32,6 +35,7 @@ expression
     | expression op=(EQUAL | NOTEQUAL) expression               # eqExpr
     | expression AND expression                                 # andExpr
     | expression OR expression                                  # orExpr
+    | expression TERN expression COLON expression               # ternExpr 
     | IDENTIFIER ASSIGN expression                              # assignExpr
     | LPAREN expression RPAREN                                  # parensExpr
     | IDENTIFIER                                                # idExpr

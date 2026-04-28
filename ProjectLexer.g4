@@ -10,6 +10,11 @@ WHILE:              'while';
 STRING:             'string';
 READ:               'read';
 WRITE:              'write';
+FILE:               'FILE';
+FOPEN:              'fopen';
+FWRITE:             'fwrite';
+FOR:                'for';
+TERN:               '?';
 
 
 // Literals
@@ -30,6 +35,7 @@ RPAREN:             ')';
 LBRACE:             '{';
 RBRACE:             '}';
 SEMI:               ';';
+COLON:              ':';
 COMMA:              ',';
 
 // Operators

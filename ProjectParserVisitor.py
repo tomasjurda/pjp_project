@@ -39,6 +39,16 @@ class ProjectParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by ProjectParser#fopenStmt.
+    def visitFopenStmt(self, ctx:ProjectParser.FopenStmtContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ProjectParser#fwriteStmt.
+    def visitFwriteStmt(self, ctx:ProjectParser.FwriteStmtContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by ProjectParser#blockStmt.
     def visitBlockStmt(self, ctx:ProjectParser.BlockStmtContext):
         return self.visitChildren(ctx)
@@ -51,6 +61,11 @@ class ProjectParserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by ProjectParser#whileStmt.
     def visitWhileStmt(self, ctx:ProjectParser.WhileStmtContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ProjectParser#forStmt.
+    def visitForStmt(self, ctx:ProjectParser.ForStmtContext):
         return self.visitChildren(ctx)
 
 
@@ -106,6 +121,11 @@ class ProjectParserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by ProjectParser#unaryMinusExpr.
     def visitUnaryMinusExpr(self, ctx:ProjectParser.UnaryMinusExprContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ProjectParser#ternExpr.
+    def visitTernExpr(self, ctx:ProjectParser.TernExprContext):
         return self.visitChildren(ctx)
 
 

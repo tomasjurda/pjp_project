@@ -190,6 +190,32 @@ class VirtualMachine:
                         else:
                             i = self.labels[label]
 
+                elif ins.startswith("fopen"):
+                    # Ze zásobníku vytáhneme cestu k souboru (např. "soubor.txt")
+                    filename = self.stack.pop()
+
+                    # Otevřeme soubor v režimu zápisu ("w") - lze upravit dle potřeby na "a" (append)
+                    file_obj = open(filename, "w")
+
+                    # Vložíme objekt souboru zpět na zásobník, aby jej instrukce "save" mohla uložit
+                    self.stack.append(file_obj)
+
+                elif ins.startswith("fwrite"):
+                    values = ins.split(" ")
+                    n_value = int(values[1])
+
+                    # Objekt souboru byl přidán nakonec, takže je na samotném vrcholu zásobníku
+                    file_obj = self.stack.pop()
+
+                    row = ""
+                    # Zbytek je identický s vaším 'print' řešením - poskládání řetězce
+                    for _ in range(n_value):
+                        value = self.stack.pop()
+                        row = str(value) + row
+
+                    # Provedeme samotný zápis
+                    file_obj.write(row + "\n")
+
             if ins.startswith("label"):
                 values = ins.split(" ")
                 label = values[1]
