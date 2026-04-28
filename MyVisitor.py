@@ -17,8 +17,10 @@ class MyVisitor(ProjectParserVisitor):
             dtype_if = "F"
         elif dtype == "string":
             dtype_if = "S"
-        else:
+        elif dtype == "bool":
             dtype_if = "B"
+        else:
+            dtype_if = dtype
 
         return dtype_if
 
@@ -45,12 +47,26 @@ class MyVisitor(ProjectParserVisitor):
             def_value = "0.0"
         elif dtype == "S":
             def_value = '""'
-        else:
+        elif dtype == "B":
             def_value = "false"
+        else:
+            def_value = "[]"
 
         for identifier in ctx.IDENTIFIER():
             instructions += f"push {dtype} {def_value} \n"
             instructions += f"save {identifier.getText()} \n"
+
+        return instructions
+
+    # Visit a parse tree produced by ProjectParser#declArrayStmt.
+    def visitDeclArrayStmt(self, ctx: ProjectParser.DeclArrayStmtContext):
+        instructions = ""
+        # dtype = self.visit(ctx.type_())
+
+        var_name = ctx.IDENTIFIER().getText()
+
+        instructions += self.visit(ctx.expression())
+        instructions += f"createarry {var_name} \n"
 
         return instructions
 
@@ -324,3 +340,23 @@ class MyVisitor(ProjectParserVisitor):
         right_instructions = self.visit(ctx.expression()[1])
 
         return left_instructions + right_instructions + "and \n"
+
+    # Visit a parse tree produced by ProjectParser#arrayAccessExpr.
+    def visitArrayAccessExpr(self, ctx: ProjectParser.ArrayAccessExprContext):
+        var_name = ctx.IDENTIFIER().getText()
+        instructions = ""
+        instructions += self.visit(ctx.expression())
+        instructions += f"arrayload {var_name} \n"
+        return instructions
+
+    # Visit a parse tree produced by ProjectParser#arrayAssignExpr.
+    def visitArrayAssignExpr(self, ctx: ProjectParser.ArrayAssignExprContext):
+        var_name = ctx.IDENTIFIER().getText()
+        instructions = ""
+        # Hodnota
+        instructions += self.visit(ctx.expression(1))
+        # Index
+        instructions += self.visit(ctx.expression(0))
+
+        instructions += f"arraysave {var_name} \n"
+        return instructions

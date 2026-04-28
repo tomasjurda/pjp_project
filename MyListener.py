@@ -27,6 +27,14 @@ class MyListener(ProjectParserListener):
         for id_node in ctx.IDENTIFIER():
             self.symbol_table.declare(id_node.getText(), dtype, line)
 
+    # Exit a parse tree produced by ProjectParser#declArrayStmt.
+
+    def exitDeclArrayStmt(self, ctx: ProjectParser.DeclArrayStmtContext):
+        dtype = self.types.get(ctx.type_(), "error")
+        line = ctx.start.line
+
+        self.symbol_table.declare(ctx.IDENTIFIER().getText(), dtype, line)
+
     # Exit a parse tree produced by ProjectParser#exprStmt.
     def exitExprStmt(self, ctx: ProjectParser.ExprStmtContext):
         self.types[ctx] = self.types.get(ctx.expression(), "error")
@@ -270,5 +278,40 @@ class MyListener(ProjectParserListener):
         else:
             self.errors.append(
                 f"Type Error [Line {line}]: Logic AND not defined for {left} and {right}"
+            )
+            self.types[ctx] = "error"
+
+    # Exit a parse tree produced by ProjectParser#arrayAccessExpr.
+    def exitArrayAccessExpr(self, ctx: ProjectParser.ArrayAccessExprContext):
+        dtype = self.types.get(ctx.expression(), "error")
+        line = ctx.start.line
+
+        if dtype != "int":
+            self.errors.append(
+                f"Type Error [Line {line}]: Index muset be type Int but got {dtype}."
+            )
+            self.types[ctx] = "error"
+
+        var_name = ctx.IDENTIFIER().getText()
+
+        self.types[ctx] = self.symbol_table.resolve(var_name, line)
+
+    # Exit a parse tree produced by ProjectParser#arrayAssignExpr.
+    def exitArrayAssignExpr(self, ctx: ProjectParser.ArrayAssignExprContext):
+        var_name = ctx.IDENTIFIER().getText()
+        line = ctx.start.line
+        var_dtype = self.symbol_table.resolve(var_name, line)
+        index_dtype = self.types.get(ctx.expression()[0], "error")
+        value_dtype = self.types.get(ctx.expression()[1], "error")
+
+        if index_dtype != "int":
+            self.errors.append(
+                f"Type Error [Line {line}]: Index muset be type Int but got {index_dtype}."
+            )
+            self.types[ctx] = "error"
+
+        if var_dtype != value_dtype:
+            self.errors.append(
+                f"Type Error [Line {line}]: Var '{var_name}' declared as {var_dtype} but got {value_dtype}."
             )
             self.types[ctx] = "error"

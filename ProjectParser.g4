@@ -8,6 +8,7 @@ program : statement* EOF ;
 statement
     : SEMI                                                      # emptyStmt
     | type IDENTIFIER (COMMA IDENTIFIER)* SEMI                  # declStmt
+    | type IDENTIFIER LBRACKET expression  RBRACKET SEMI        # declArrayStmt
     | expression SEMI                                           # exprStmt
     | READ IDENTIFIER (COMMA IDENTIFIER)* SEMI                  # readStmt
     | WRITE expression (COMMA expression)* SEMI                 # writeStmt
@@ -33,6 +34,8 @@ expression
     | expression AND expression                                 # andExpr
     | expression OR expression                                  # orExpr
     | IDENTIFIER ASSIGN expression                              # assignExpr
+    | IDENTIFIER LBRACKET expression RBRACKET                   # arrayAccessExpr
+    | IDENTIFIER LBRACKET expression RBRACKET ASSIGN expression # arrayAssignExpr
     | LPAREN expression RPAREN                                  # parensExpr
     | IDENTIFIER                                                # idExpr
     | INT_LITERAL                                               # intExpr

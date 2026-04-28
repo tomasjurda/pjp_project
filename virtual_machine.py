@@ -190,6 +190,35 @@ class VirtualMachine:
                         else:
                             i = self.labels[label]
 
+                elif ins.startswith("createarry"):
+                    var_name = ins.split(" ")[1]
+                    size = self.stack.pop()
+
+                    array_obj = [0 for _ in range(size)]
+
+                    self.memory[var_name] = array_obj
+
+                elif ins.startswith("arrayload"):
+                    var_name = ins.split(" ")[1]
+                    index = self.stack.pop()  # vytáhneme index
+
+                    # Vytáhneme pole z paměti a vezmeme prvek
+                    array_obj = self.memory[var_name]
+                    value = array_obj[index]
+
+                    self.stack.append(value)
+
+                elif ins.startswith("arraysave"):
+                    var_name = ins.split(" ")[1]
+                    index = self.stack.pop()  # vytáhneme index
+                    value = self.stack.pop()
+
+                    # Vytáhneme pole z paměti a vezmeme prvek
+                    array_obj = self.memory[var_name]
+                    array_obj[index] = value
+
+                    self.stack.append(value)
+
             if ins.startswith("label"):
                 values = ins.split(" ")
                 label = values[1]

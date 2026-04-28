@@ -11,18 +11,11 @@ from virtual_machine import VirtualMachine
 
 def main():
     source_code = """
-    int a;
+    string a[10];
 
-    while(a < 10) {
-        if(a < 5){
-            write "a=",a;
-            if(a < 2){
-                write "small";
-            }
-        }
-        a=a+1;
-    }
-    write "a=",a;
+    a[1] = "ahoj";
+
+    write a[1];
     """
 
     input_stream = InputStream(source_code)
@@ -68,6 +61,8 @@ def main():
 
     vmachine = VirtualMachine("instructions.txt")
     vmachine.run()
+
+    print(vmachine.memory["a"])
 
 
 if __name__ == "__main__":

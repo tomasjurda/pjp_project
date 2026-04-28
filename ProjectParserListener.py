@@ -35,6 +35,15 @@ class ProjectParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by ProjectParser#declArrayStmt.
+    def enterDeclArrayStmt(self, ctx:ProjectParser.DeclArrayStmtContext):
+        pass
+
+    # Exit a parse tree produced by ProjectParser#declArrayStmt.
+    def exitDeclArrayStmt(self, ctx:ProjectParser.DeclArrayStmtContext):
+        pass
+
+
     # Enter a parse tree produced by ProjectParser#exprStmt.
     def enterExprStmt(self, ctx:ProjectParser.ExprStmtContext):
         pass
@@ -143,6 +152,15 @@ class ProjectParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by ProjectParser#arrayAssignExpr.
+    def enterArrayAssignExpr(self, ctx:ProjectParser.ArrayAssignExprContext):
+        pass
+
+    # Exit a parse tree produced by ProjectParser#arrayAssignExpr.
+    def exitArrayAssignExpr(self, ctx:ProjectParser.ArrayAssignExprContext):
+        pass
+
+
     # Enter a parse tree produced by ProjectParser#stringExpr.
     def enterStringExpr(self, ctx:ProjectParser.StringExprContext):
         pass
@@ -176,6 +194,15 @@ class ProjectParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by ProjectParser#notExpr.
     def exitNotExpr(self, ctx:ProjectParser.NotExprContext):
+        pass
+
+
+    # Enter a parse tree produced by ProjectParser#arrayAccessExpr.
+    def enterArrayAccessExpr(self, ctx:ProjectParser.ArrayAccessExprContext):
+        pass
+
+    # Exit a parse tree produced by ProjectParser#arrayAccessExpr.
+    def exitArrayAccessExpr(self, ctx:ProjectParser.ArrayAccessExprContext):
         pass
 
 

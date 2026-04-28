@@ -24,6 +24,11 @@ class ProjectParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by ProjectParser#declArrayStmt.
+    def visitDeclArrayStmt(self, ctx:ProjectParser.DeclArrayStmtContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by ProjectParser#exprStmt.
     def visitExprStmt(self, ctx:ProjectParser.ExprStmtContext):
         return self.visitChildren(ctx)
@@ -84,6 +89,11 @@ class ProjectParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by ProjectParser#arrayAssignExpr.
+    def visitArrayAssignExpr(self, ctx:ProjectParser.ArrayAssignExprContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by ProjectParser#stringExpr.
     def visitStringExpr(self, ctx:ProjectParser.StringExprContext):
         return self.visitChildren(ctx)
@@ -101,6 +111,11 @@ class ProjectParserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by ProjectParser#notExpr.
     def visitNotExpr(self, ctx:ProjectParser.NotExprContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by ProjectParser#arrayAccessExpr.
+    def visitArrayAccessExpr(self, ctx:ProjectParser.ArrayAccessExprContext):
         return self.visitChildren(ctx)
 
 
